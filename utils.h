@@ -3,15 +3,24 @@
 
 // —труктура конфигурации
 typedef struct {
-    int rounding_precision;  // точность округлени€
+    int rounding_precision;
+    int logging;  // ‘лаг дл€ включени€/выключени€ логировани€
 } Config;
 
-/**
- * Function to read configuration from a file
- * @param filename Ч Name of the config file
- * @param config Ч Pointer to the config structure where the values will be saved
- * @return Error code (Error_Config_Success, Error_Config_OpenFile, Error_Config_Parse)
- */
+// ќшибки, которые могут возникать при загрузке конфигурации
+enum ErrorCodes_Config
+{
+    Error_Config_Success = 0,
+    Error_Config_NULL_Config_Pointer = 1,
+    Error_Config_OpenFile = 2,
+    Error_Config_Reading_Failed = 3,
+    Error_Config_Parse = 4,
+    Error_Config_Uncknow_Config_Key = 5,
+    Error_Config_Close_File = 6,
+    Error_Config_Exit_Beyond_The_Array = 7
+};
+
+// ‘ункции, которые определены в utils.c
 int load_config(const char *filename, Config *config);
 
 #endif // UTILS_H
