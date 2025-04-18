@@ -8,19 +8,23 @@
 enum Errors_Config
 {
     Error_Config_Success = 0,
-    Error_Config_NULL_Config_Pointer,
-    Error_Config_OpenFile,
-    Error_Config_Reading_Failed,
-    Error_Config_Parse,
-    Error_Config_Uncknow_Config_Key,
-    Error_Config_Close_File
+    Error_Config_NULL_Config_Pointer = 1,
+    Error_Config_OpenFile = 2,
+    Error_Config_Reading_Failed = 3,
+    Error_Config_Exit_Beyond_The_Array = 4,
+    Error_Config_Parse = 5,
+    Error_Config_Uncknow_Config_Key = 6,
+    Error_Config_Close_File = 7
 };
 
 /**
  * Function to read configuration from a file
  * @param filename — Name of the config file
  * @param config — Pointer to the config structure where the values will be saved
- * @return Error code (Error_Config_Success, Error_Config_OpenFile, Error_Config_Parse)
+ * @return Errors_Config codes (Error_Config_Success, Error_Config_NULL_Config_Pointer,
+ * Error_Config_OpenFile, Error_Config_Reading_Failed, Error_Config_Parse,
+ * Error_Config_Uncknow_Config_Key, Error_Config_Close_File)
+ * )
  */
 int load_config(const char *filename, Config *config)
 {
@@ -33,7 +37,6 @@ int load_config(const char *filename, Config *config)
 
     FILE *file = fopen(filename, "r");
     /**
-     * FILE *fopen(const char *fname, const char *modeopen);
      * opens a file with the specified filename and mode.
      * Returns a pointer to a FILE object on success, or NULL
      * on failure.
@@ -51,17 +54,19 @@ int load_config(const char *filename, Config *config)
     int ch = 0;
     size_t i = 0;
 
+    /**
+     * Reads the file character by character using fgetc().
+     * Increments lines_count each time a newline '\n' is found.
+     * Stops reading when EOF is reached.
+     */
     while((ch = fgetc(file)) != EOF)
     {
-    /**
-     * int fgetc(FILE *filestream);
-     * reads a single character from the specified file
-     * stream and returns it as an unsigned char cast to an
-     * int. Returns EOF on error or end of file.
-     */
         if (ch == '\n')
+        {
             lines_count++;
+        }
     }
+
 
     for (i = 0; i < lines_count; i++)
     {
@@ -85,14 +90,24 @@ int load_config(const char *filename, Config *config)
                 return Error_Config_Reading_Failed;
             }
         }
+
         /**
          * size_t strcspn(const char *str1, const char *str2)
          * Removes the newline character from the end of line.
          * strcspn() finds the index of '\n', which is then
          * replaced with a null terminator '\0'.
+         * This "IF" checks the exit beyond the array
          */
-
-        line[strcspn(line, "\n")] = '\0';
+        if ((strcspn(line, "\n") >= 0) && (strcspn(line, "\n") <= sizeof(line)/sizeof(line[0])))
+        {
+            line[strcspn(line, "\n")] = '\0';
+        }
+        else
+        {
+            printf("Error: Attempted to access memory beyond the line buffer bounds when removing newline\n");
+            fclose(file);
+            return Error_Config_Exit_Beyond_The_Array;
+        }
 
         // Skip empty lines or comments
         if (line[0] == '#' || line[0] == '\0')

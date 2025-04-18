@@ -7,10 +7,10 @@ typedef struct {
 } Config;
 
 /**
- * ‘ункци€ дл€ загрузки конфигурации из файла
- * @param filename »м€ конфигурационного файла
- * @param config ”казатель на структуру конфигурации, куда будут сохранены значени€
- * @return  од ошибки (0 Ч успех, остальные значени€ Ч ошибки)
+ * Function to read configuration from a file
+ * @param filename Ч Name of the config file
+ * @param config Ч Pointer to the config structure where the values will be saved
+ * @return Error code (Error_Config_Success, Error_Config_OpenFile, Error_Config_Parse)
  */
 int load_config(const char *filename, Config *config);
 
