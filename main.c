@@ -1,59 +1,90 @@
-#include "utils.h"
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include "lexer.h"
+#include "parser.h"
+#include "evaluator.h"
+#include "utils.h"
 
-/**
- * Simple test for the load_config function
- */
+/*enum Error_Codes_main
+{
+    Error_Codes_main_OK,
+    Error_Codes_main_InvalidInput,
+    Error_Codes_main_LexerError,
+    Error_Codes_main_ParserError,
+    Error_Codes_main_EvaluatorError
+};
+
 int main()
 {
-    Config config;
+    struct Config config;
+    int result;
+    enum Error_Codes_main status;
 
-    // Путь к конфигурационному файлу
-    const char *filename = "app.config";
+    char input[256];
+    struct Token tokens[128];
+    size_t token_count;
 
-    // Загружаем конфиг
-    int result = load_config(filename, &config);
+    struct ASTNode ast_root;
+    double result_value;
 
-    // Проверка кода возврата
-    switch (result)
+    result = load_config("app.config", &config);
+    if (result != 0)
     {
-        case Error_Config_Success:
-            printf("Config loaded successfully.\n");
-            printf("rounding_precision = %d\n", config.rounding_precision);
-            break;
-
-        case Error_Config_NULL_Config_Pointer:
-            printf("Error: NULL pointer passed to load_config\n");
-            break;
-
-        case Error_Config_OpenFile:
-            printf("Error: Unable to open config file: %s\n", filename);
-            break;
-
-        case Error_Config_Reading_Failed:
-            printf("Error: Failed to read from config file\n");
-            break;
-
-        case Error_Config_Exit_Beyond_The_Array:
-            printf("Error: Attempted to access memory beyond line buffer\n");
-            break;
-
-        case Error_Config_Parse:
-            printf("Error: Failed to parse config line\n");
-            break;
-
-        case Error_Config_Uncknow_Config_Key:
-            printf("Error: Unknown config key found\n");
-            break;
-
-        case Error_Config_Close_File:
-            printf("Error: Failed to close config file\n");
-            break;
-
-        default:
-            printf("Error: Unknown error code %d\n", result);
-            break;
+        printf("Error: failed to load config\n");
+        return 1;
     }
 
-    return 0;
+    while (1)
+    {
+        printf("Enter expression (or 'exit'): ");
+        if (!fgets(input, sizeof(input), stdin))
+        {
+            printf("Error reading input\n");
+            status = Error_Codes_main_InvalidInput;
+            break;
+        }
+
+        size_t len;
+        len = strlen(input);
+        if (len > 0 && input[len - 1] == '\n')
+        {
+            input[len - 1] = '\0';
+        }
+
+        if (strcmp(input, "exit") == 0)
+        {
+            break;
+        }
+
+        result = lex(input, tokens, &token_count, &config);
+        if (result != 0)
+        {
+            printf("Lexer error\n");
+            status = Error_Codes_main_LexerError;
+            continue;
+        }
+
+        result = parse(tokens, token_count, &ast_root, &config);
+        if (result != 0)
+        {
+            printf("Parser error\n");
+            status = Error_Codes_main_ParserError;
+            continue;
+        }
+
+        result = evaluate(&ast_root, &result_value, &config);
+        if (result != 0)
+        {
+            printf("Evaluator error\n");
+            status = Error_Codes_main_EvaluatorError;
+            continue;
+        }
+
+        printf("Result: %.10g\n", result_value);
+        status = Error_Codes_main_OK;
+    }
+
+    return status;
 }
+*/
